@@ -11,8 +11,6 @@ const env = require("./env");
 
 app.use(express.json());
 
-console.log(md5("sparkout"));
-
 const resp = (req,res,next) => {
     res.success = (body,msg,code = 200) => {
         res.status(code).json({"HTTP_STATUS_CODE" : code,"status":true,"message":msg,"body":body});
@@ -77,8 +75,9 @@ app.post('/api/v1/user/auth', [ loginValidate ], (req,res) => {
     connection.query(
         selectSql,
         function(err, results, fields) {
-            if (err != null) {
-                res.error(err,"Invalid login credentials")
+            console.log(err);
+            if (err == null) {
+                res.error({},"Invalid login credentials")
             } else {
                 res.success(results[0],"Login successfully");
             }            

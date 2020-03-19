@@ -6,9 +6,12 @@ const app       = express();
 const { connection } = require("./db");
 const { registerValidate,loginValidate } = require("./validator");
 const { emailCheck } = require("./middleware");
+const { sendOtp } = require("./email");
 const env = require("./env");
 
 app.use(express.json());
+
+console.log(md5("sparkout"));
 
 const resp = (req,res,next) => {
     res.success = (body,msg,code = 200) => {
@@ -38,21 +41,23 @@ app.post('/api/v1/check-username', (req,res) => {
     );
 });
 
-/**
+/** 
  *  register api
  */
 app.post('/api/v1/user', [registerValidate,emailCheck], (req,res) => {
-
+ 
+    const otp = new Date().getTime().toString().slice(7, 13);
     const token = md5(new Date());
     const password = md5(req.body.password);
-    const insertSql = `INSERT INTO auth (username, email,token, password)
-    VALUES ("${req.body.username}","${req.body.email}","${token}","${password}")`;
+    const insertSql = `INSERT INTO auth (username, email,token, password,otp)
+    VALUES ("${req.body.username}","${req.body.email}","${token}","${password}","${otp}")`;
 
     connection.query(
         insertSql,
-        function(err, results, fields) {
+        function(err, results, fields) { 
             console.dir(err);
             console.dir(results);
+            sendOtp(otp,req.body.email);
             connection.query(
                 `SELECT * from auth where id = ${results.insertId}`,
                 function(err, results, fields) {
